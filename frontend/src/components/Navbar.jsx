@@ -50,23 +50,23 @@ export default function Navbar({ theme, toggleTheme }) {
   const isDark = theme === 'dark';
 
   const navLinkClass = ({ isActive }) =>
-    `text-sm font-medium transition-colors no-underline ${
+    `text-sm font-medium transition-colors duration-150 no-underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 px-1 py-0.5 ${
       isActive
-        ? 'text-blue-500 border-b-2 border-blue-500 pb-0.5'
+        ? 'text-blue-500 border-b-2 border-blue-500 pb-0'
         : 'text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400'
     }`;
 
   return (
     <nav className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
-          <NavLink to="/" className="flex items-center gap-2 no-underline">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 min-h-14 py-2">
+          <NavLink to="/" className="flex items-center gap-2 no-underline shrink-0 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1">
             <span className="text-xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">
               FinPulse
             </span>
           </NavLink>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:gap-x-6">
             <NavLink to="/" end className={navLinkClass}>
               Dashboard
             </NavLink>
@@ -85,7 +85,7 @@ export default function Navbar({ theme, toggleTheme }) {
               onClick={toggleTheme}
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="p-2 rounded-lg text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
             >
               {isDark ? <SunIcon /> : <MoonIcon />}
             </button>

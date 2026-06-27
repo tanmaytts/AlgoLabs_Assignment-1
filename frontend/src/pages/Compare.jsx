@@ -117,7 +117,7 @@ export default function Compare() {
               {selectedTickers.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-150 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1 px-1"
                 >
                   Clear all
                 </button>
@@ -132,7 +132,8 @@ export default function Compare() {
                     key={s.ticker}
                     onClick={() => !disabled && toggleTicker(s.ticker)}
                     disabled={disabled}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    aria-pressed={selected}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
                       selected
                         ? 'bg-blue-600 text-white border-blue-600'
                         : disabled
@@ -149,7 +150,7 @@ export default function Compare() {
               <button
                 onClick={handleCompare}
                 disabled={!canCompare || compareLoading}
-                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
                   canCompare && !compareLoading
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
                     : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'

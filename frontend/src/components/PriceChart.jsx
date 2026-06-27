@@ -155,7 +155,9 @@ export default function PriceChart({ ticker }) {
           {/* SMA toggle pills */}
           <button
             onClick={() => setShowSMA20((v) => !v)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            aria-pressed={showSMA20}
+            aria-label="Toggle SMA 20 overlay"
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-1 ${
               showSMA20
                 ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                 : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 hover:border-amber-300'
@@ -165,7 +167,9 @@ export default function PriceChart({ ticker }) {
           </button>
           <button
             onClick={() => setShowSMA50((v) => !v)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            aria-pressed={showSMA50}
+            aria-label="Toggle SMA 50 overlay"
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-1 ${
               showSMA50
                 ? 'border-violet-400 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
                 : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 hover:border-violet-300'
@@ -175,12 +179,13 @@ export default function PriceChart({ ticker }) {
           </button>
 
           {/* Range buttons */}
-          <div className="flex gap-1 ml-1">
+          <div className="flex gap-1 ml-1" role="group" aria-label="Select price history range">
             {RANGES.map((r) => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                aria-pressed={range === r}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
                   range === r
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700'

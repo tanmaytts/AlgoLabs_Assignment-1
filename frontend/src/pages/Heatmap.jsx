@@ -180,7 +180,7 @@ export default function Heatmap() {
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-slate-700/30">
                   {stocks.map((stock) => (
-                    <tr key={stock.ticker} className="hover:brightness-95 dark:hover:brightness-110 transition-all">
+                    <tr key={stock.ticker} className="hover:brightness-95 dark:hover:brightness-110 transition-all duration-150">
                       <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-slate-200 max-w-[180px] truncate sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-gray-50 dark:border-slate-700">
                         {stock.name}
                       </td>

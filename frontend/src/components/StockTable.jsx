@@ -117,7 +117,7 @@ export default function StockTable({ stocks }) {
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
+            className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors duration-150 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 px-1"
           >
             Clear
           </button>
@@ -135,7 +135,11 @@ export default function StockTable({ stocks }) {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-blue-700 dark:hover:text-blue-400 whitespace-nowrap ${
+                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSort(col.key)}
+                  tabIndex={0}
+                  role="columnheader"
+                  aria-sort={sortKey === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                  className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-blue-700 dark:hover:text-blue-400 whitespace-nowrap transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
                     col.numeric ? 'text-right' : ''
                   }`}
                   style={{ textAlign: col.numeric ? 'right' : 'left' }}
@@ -161,7 +165,7 @@ export default function StockTable({ stocks }) {
                 <tr
                   key={stock.ticker}
                   onClick={() => navigate(`/stock/${encodeURIComponent(stock.ticker)}`)}
-                  className="border-b border-gray-50 dark:border-slate-700/50 hover:bg-blue-50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors last:border-0"
+                  className="border-b border-gray-50 dark:border-slate-700/50 hover:bg-blue-50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors duration-150 last:border-0"
                 >
                   {COLUMNS.map((col) => (
                     <td

@@ -60,7 +60,7 @@ export default function StockDetail() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
         >
           Back
         </button>
@@ -77,7 +77,7 @@ export default function StockDetail() {
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
         onClick={() => navigate(-1)}
-        className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-5 inline-block"
+        className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-5 inline-block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
       >
         Back to Dashboard
       </button>
@@ -120,7 +120,8 @@ export default function StockDetail() {
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => setChartMode('line')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              aria-pressed={chartMode === 'line'}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
                 chartMode === 'line'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
@@ -130,7 +131,8 @@ export default function StockDetail() {
             </button>
             <button
               onClick={() => setChartMode('candle')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+              aria-pressed={chartMode === 'candle'}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
                 chartMode === 'candle'
                   ? 'bg-blue-600 text-white'
                   : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'

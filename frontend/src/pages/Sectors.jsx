@@ -172,7 +172,7 @@ export default function Sectors() {
                   {sectors.map((s, idx) => (
                     <tr
                       key={s.sector}
-                      className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                      className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors duration-150"
                     >
                       <td className="px-5 py-3 font-medium text-gray-800 dark:text-slate-200">
                         <span
