@@ -5,7 +5,7 @@
 # to fetch stock data from Yahoo Finance. They share a single image to keep
 # deployment simple and avoid the overhead of a separate sidecar.
 
-FROM node:20-slim
+FROM node:22-slim
 
 # Install Python 3 and pip from the Debian package manager.
 # --no-install-recommends keeps the layer small.
