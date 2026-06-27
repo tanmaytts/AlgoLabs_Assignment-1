@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ComposedChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,8 +13,13 @@ import {
 import { fetchStockHistory } from '../api/client';
 import { Loading, ErrorView, EmptyView } from './StateViews';
 import { formatPrice, formatVolume } from '../utils/format';
+import { computeSMA } from '../utils/indicators';
 
 const RANGES = ['1M', '6M', '1Y'];
+
+/* SMA color constants */
+const SMA20_COLOR = '#f59e0b'; /* amber-400 */
+const SMA50_COLOR = '#8b5cf6'; /* violet-500 */
 
 function formatDate(dateStr, range) {
   const d = new Date(dateStr);
@@ -23,12 +29,16 @@ function formatDate(dateStr, range) {
   return d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
 }
 
+function isDarkMode() {
+  return document.documentElement.classList.contains('dark');
+}
+
 /**
  * Custom candlestick shape rendered as an SVG rect (body) plus a line (wick).
  * Green when close >= open, red when close < open.
  */
 function CandlestickShape(props) {
-  const { x, y, width, height, open, close, high, low, index, chartData } = props;
+  const { x, y, width, height, index, chartData } = props;
 
   if (
     x === undefined ||
@@ -45,24 +55,34 @@ function CandlestickShape(props) {
   const isGreen = row.close >= row.open;
   const color = isGreen ? '#16a34a' : '#dc2626';
 
-  // The Bar renders using the candleRange value (high - low) so y/height cover
-  // the full wick range. We recompute body bounds from the yScale via the
-  // coordinate values already provided by Recharts.
-  // y = top of wick (high), y + height = bottom of wick (low)
+  /* The Bar renders using the candleRange value (high - low) so y/height cover
+     the full wick range. We recompute body bounds from the coordinate values
+     already provided by Recharts.
+     y = top of wick (high), y + height = bottom of wick (low) */
 
   const wickX = x + width / 2;
   const wickTop = y;
   const wickBottom = y + height;
 
-  // Body: spans from open to close within the wick range
-  // We need to interpolate open/close positions within the wick
+  /* Body: spans from open to close within the wick range */
   const wickRange = row.high - row.low;
   if (wickRange <= 0) {
-    return <line x1={wickX} y1={wickTop} x2={wickX} y2={wickBottom} stroke={color} strokeWidth={1} />;
+    return (
+      <line
+        x1={wickX}
+        y1={wickTop}
+        x2={wickX}
+        y2={wickBottom}
+        stroke={color}
+        strokeWidth={1}
+      />
+    );
   }
 
-  const bodyTop = wickTop + ((row.high - Math.max(row.open, row.close)) / wickRange) * height;
-  const bodyBottom = wickTop + ((row.high - Math.min(row.open, row.close)) / wickRange) * height;
+  const bodyTop =
+    wickTop + ((row.high - Math.max(row.open, row.close)) / wickRange) * height;
+  const bodyBottom =
+    wickTop + ((row.high - Math.min(row.open, row.close)) / wickRange) * height;
   const bodyHeight = Math.max(bodyBottom - bodyTop, 1);
 
   const bodyWidth = Math.max(width * 0.6, 2);
@@ -99,23 +119,47 @@ function CandleTooltip({ active, payload, label }) {
   if (!row) return null;
   const isGreen = row.close >= row.open;
 
+  const dark = isDarkMode();
+  const sma20Entry = payload.find((p) => p.dataKey === 'sma20');
+  const sma50Entry = payload.find((p) => p.dataKey === 'sma50');
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-md px-3 py-2 text-xs">
-      <p className="text-gray-500 mb-1">{label}</p>
+    <div
+      className={`rounded-lg shadow-md px-3 py-2 text-xs border ${
+        dark
+          ? 'bg-slate-800 border-slate-600 text-slate-100'
+          : 'bg-white border-gray-200 text-gray-900'
+      }`}
+    >
+      <p className={`mb-1 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>{label}</p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-        <span className="text-gray-500">Open</span>
+        <span className={dark ? 'text-slate-400' : 'text-gray-500'}>Open</span>
         <span className="font-semibold font-mono">{formatPrice(row.open)}</span>
-        <span className="text-gray-500">High</span>
-        <span className="font-semibold font-mono text-green-700">{formatPrice(row.high)}</span>
-        <span className="text-gray-500">Low</span>
-        <span className="font-semibold font-mono text-red-700">{formatPrice(row.low)}</span>
-        <span className="text-gray-500">Close</span>
-        <span className={`font-semibold font-mono ${isGreen ? 'text-green-700' : 'text-red-700'}`}>
+        <span className={dark ? 'text-slate-400' : 'text-gray-500'}>High</span>
+        <span className="font-semibold font-mono text-green-500">{formatPrice(row.high)}</span>
+        <span className={dark ? 'text-slate-400' : 'text-gray-500'}>Low</span>
+        <span className="font-semibold font-mono text-red-500">{formatPrice(row.low)}</span>
+        <span className={dark ? 'text-slate-400' : 'text-gray-500'}>Close</span>
+        <span
+          className={`font-semibold font-mono ${
+            isGreen ? 'text-green-500' : 'text-red-500'
+          }`}
+        >
           {formatPrice(row.close)}
         </span>
-        <span className="text-gray-500">Volume</span>
+        <span className={dark ? 'text-slate-400' : 'text-gray-500'}>Volume</span>
         <span className="font-semibold font-mono">{formatVolume(row.volume)}</span>
       </div>
+      {sma20Entry && sma20Entry.value != null && (
+        <p style={{ color: SMA20_COLOR }} className="font-medium mt-1">
+          SMA 20: {formatPrice(sma20Entry.value)}
+        </p>
+      )}
+      {sma50Entry && sma50Entry.value != null && (
+        <p style={{ color: SMA50_COLOR }} className="font-medium mt-0.5">
+          SMA 50: {formatPrice(sma50Entry.value)}
+        </p>
+      )}
     </div>
   );
 }
@@ -125,6 +169,18 @@ export default function CandlestickChart({ ticker }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  /* SMA toggle state - both on by default */
+  const [showSMA20, setShowSMA20] = useState(true);
+  const [showSMA50, setShowSMA50] = useState(true);
+
+  /* Re-render when theme changes so chart colors update */
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTick((t) => t + 1));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!ticker) return;
@@ -149,20 +205,26 @@ export default function CandlestickChart({ ticker }) {
     };
   }, [ticker, range]);
 
-  const chartData = history.map((row) => ({
+  /* Build SMA arrays from close prices */
+  const closes = history.map((r) => r.close);
+  const sma20Values = computeSMA(closes, 20);
+  const sma50Values = computeSMA(closes, 50);
+
+  const chartData = history.map((row, i) => ({
     date: formatDate(row.date, range),
     open: row.open,
     high: row.high,
     low: row.low,
     close: row.close,
     volume: row.volume,
-    // candleRange drives the Bar height so it covers the full high-low span
+    /* candleRange drives the Bar height so it covers the full high-low span */
     candleRange: row.high - row.low,
-    // candleBase is the low, so the Bar starts at the right position
+    /* candleBase is the low, so the Bar starts at the right position */
     candleBase: row.low,
+    sma20: sma20Values[i],
+    sma50: sma50Values[i],
   }));
 
-  const closes = chartData.map((d) => d.close).filter((v) => v != null);
   const highs = chartData.map((d) => d.high).filter((v) => v != null);
   const lows = chartData.map((d) => d.low).filter((v) => v != null);
   const priceMin = lows.length > 0 ? Math.min(...lows) : 0;
@@ -172,26 +234,55 @@ export default function CandlestickChart({ ticker }) {
   const volumes = chartData.map((d) => d.volume).filter((v) => v != null);
   const volMax = volumes.length > 0 ? Math.max(...volumes) : 0;
 
+  const dark = isDarkMode();
+  const gridColor = dark ? '#334155' : '#f1f5f9';
+  const tickColor = dark ? '#64748b' : '#94a3b8';
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">
           Candlestick + Volume
         </h2>
-        <div className="flex gap-1">
-          {RANGES.map((r) => (
-            <button
-              key={r}
-              onClick={() => setRange(r)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                range === r
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              {r}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* SMA toggle pills */}
+          <button
+            onClick={() => setShowSMA20((v) => !v)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              showSMA20
+                ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 hover:border-amber-300'
+            }`}
+          >
+            SMA 20
+          </button>
+          <button
+            onClick={() => setShowSMA50((v) => !v)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              showSMA50
+                ? 'border-violet-400 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 hover:border-violet-300'
+            }`}
+          >
+            SMA 50
+          </button>
+
+          {/* Range buttons */}
+          <div className="flex gap-1 ml-1">
+            {RANGES.map((r) => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  range === r
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -213,17 +304,17 @@ export default function CandlestickChart({ ticker }) {
               data={chartData}
               margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: '#94a3b8' }}
+                tick={{ fontSize: 11, fill: tickColor }}
                 tickLine={false}
                 axisLine={false}
                 interval="preserveStartEnd"
               />
               <YAxis
                 domain={[priceMin - pricePad, priceMax + pricePad]}
-                tick={{ fontSize: 11, fill: '#94a3b8' }}
+                tick={{ fontSize: 11, fill: tickColor }}
                 tickLine={false}
                 axisLine={false}
                 width={76}
@@ -232,6 +323,15 @@ export default function CandlestickChart({ ticker }) {
                 }
               />
               <Tooltip content={<CandleTooltip />} />
+
+              {/*
+                The Bar renders the candlestick custom shape. The SMA Line
+                series are independent overlays - they do NOT interfere with
+                the custom CandlestickShape rendering.
+
+                Note: on 1M range, SMA(50) will have no visible points because
+                there are only ~21 trading days. That is expected behavior.
+              */}
               <Bar
                 dataKey="candleRange"
                 stackId="candle"
@@ -247,12 +347,42 @@ export default function CandlestickChart({ ticker }) {
                   />
                 ))}
               </Bar>
+
+              {/* SMA(20) overlay in amber */}
+              {showSMA20 && (
+                <Line
+                  type="monotone"
+                  dataKey="sma20"
+                  stroke={SMA20_COLOR}
+                  strokeWidth={1.5}
+                  dot={false}
+                  connectNulls
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              )}
+
+              {/* SMA(50) overlay in violet */}
+              {showSMA50 && (
+                <Line
+                  type="monotone"
+                  dataKey="sma50"
+                  stroke={SMA50_COLOR}
+                  strokeWidth={1.5}
+                  dot={false}
+                  connectNulls
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              )}
             </ComposedChart>
           </ResponsiveContainer>
 
           {/* Volume bar chart */}
-          <div className="mt-3 border-t border-gray-100 pt-3">
-            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Volume</p>
+          <div className="mt-3 border-t border-gray-100 dark:border-slate-700 pt-3">
+            <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">
+              Volume
+            </p>
             <ResponsiveContainer width="100%" height={80}>
               <ComposedChart
                 data={chartData}
@@ -260,14 +390,14 @@ export default function CandlestickChart({ ticker }) {
               >
                 <XAxis
                   dataKey="date"
-                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tick={{ fontSize: 10, fill: tickColor }}
                   tickLine={false}
                   axisLine={false}
                   interval="preserveStartEnd"
                 />
                 <YAxis
                   domain={[0, volMax * 1.1]}
-                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  tick={{ fontSize: 10, fill: tickColor }}
                   tickLine={false}
                   axisLine={false}
                   width={52}
@@ -275,18 +405,24 @@ export default function CandlestickChart({ ticker }) {
                 />
                 <Tooltip
                   formatter={(value) => [formatVolume(value), 'Volume']}
-                  labelStyle={{ color: '#6b7280', fontSize: 11 }}
+                  labelStyle={{ color: dark ? '#94a3b8' : '#6b7280', fontSize: 11 }}
                   contentStyle={{
-                    border: '1px solid #e5e7eb',
+                    border: `1px solid ${dark ? '#475569' : '#e5e7eb'}`,
                     borderRadius: 8,
                     fontSize: 12,
+                    backgroundColor: dark ? '#1e293b' : '#fff',
+                    color: dark ? '#f1f5f9' : '#111827',
                   }}
                 />
                 <Bar dataKey="volume" isAnimationActive={false} radius={[2, 2, 0, 0]}>
                   {chartData.map((entry, i) => (
                     <Cell
                       key={`vol-cell-${i}`}
-                      fill={entry.close >= entry.open ? '#bbf7d0' : '#fecaca'}
+                      fill={
+                        entry.close >= entry.open
+                          ? dark ? '#166534' : '#bbf7d0'
+                          : dark ? '#991b1b' : '#fecaca'
+                      }
                     />
                   ))}
                 </Bar>

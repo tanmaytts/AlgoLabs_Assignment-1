@@ -22,7 +22,7 @@ const COLUMNS = [
 function SortIcon({ direction }) {
   if (!direction) {
     return (
-      <span className="ml-1 text-gray-300 select-none">
+      <span className="ml-1 text-gray-300 dark:text-slate-600 select-none">
         <svg className="inline w-3 h-3" viewBox="0 0 10 10" fill="currentColor">
           <path d="M5 2l3 3H2L5 2zM5 8L2 5h6L5 8z" />
         </svg>
@@ -30,7 +30,7 @@ function SortIcon({ direction }) {
     );
   }
   return (
-    <span className="ml-1 text-blue-600 select-none">
+    <span className="ml-1 text-blue-600 dark:text-blue-400 select-none">
       {direction === 'asc' ? (
         <svg className="inline w-3 h-3" viewBox="0 0 10 10" fill="currentColor">
           <path d="M5 2l3 4H2L5 2z" />
@@ -112,38 +112,36 @@ export default function StockTable({ stocks }) {
           placeholder="Search by ticker, name or sector..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-80 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+          className="w-full sm:w-80 px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="text-xs text-gray-400 hover:text-gray-700 transition-colors"
+            className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
           >
             Clear
           </button>
         )}
-        <span className="text-xs text-gray-400 ml-auto whitespace-nowrap">
+        <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto whitespace-nowrap">
           {sorted.length} of {stocks.length} stocks
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
+            <tr className="border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer select-none hover:text-blue-700 whitespace-nowrap ${
+                  className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-blue-700 dark:hover:text-blue-400 whitespace-nowrap ${
                     col.numeric ? 'text-right' : ''
                   }`}
                   style={{ textAlign: col.numeric ? 'right' : 'left' }}
                 >
                   {col.label}
-                  <SortIcon
-                    direction={sortKey === col.key ? sortDir : null}
-                  />
+                  <SortIcon direction={sortKey === col.key ? sortDir : null} />
                 </th>
               ))}
             </tr>
@@ -153,7 +151,7 @@ export default function StockTable({ stocks }) {
               <tr>
                 <td
                   colSpan={COLUMNS.length}
-                  className="text-center py-10 text-gray-400 text-sm"
+                  className="text-center py-10 text-gray-400 dark:text-slate-500 text-sm"
                 >
                   No stocks match your search.
                 </td>
@@ -163,14 +161,18 @@ export default function StockTable({ stocks }) {
                 <tr
                   key={stock.ticker}
                   onClick={() => navigate(`/stock/${encodeURIComponent(stock.ticker)}`)}
-                  className="border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition-colors last:border-0"
+                  className="border-b border-gray-50 dark:border-slate-700/50 hover:bg-blue-50 dark:hover:bg-slate-700/40 cursor-pointer transition-colors last:border-0"
                 >
                   {COLUMNS.map((col) => (
                     <td
                       key={col.key}
                       className={`px-4 py-3 ${
                         col.numeric ? 'text-right' : ''
-                      } ${col.key === 'ticker' ? 'font-semibold text-blue-700' : 'text-gray-700'}`}
+                      } ${
+                        col.key === 'ticker'
+                          ? 'font-semibold text-blue-700 dark:text-blue-400'
+                          : 'text-gray-700 dark:text-slate-300'
+                      }`}
                     >
                       {renderCell(stock, col)}
                     </td>

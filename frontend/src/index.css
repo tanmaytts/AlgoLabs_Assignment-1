@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/*
+  Tailwind v4 dark mode strategy: class-based toggle on <html>.
+  The @custom-variant below makes all dark: utilities respond to the .dark
+  class being present on any ancestor (including html), rather than using the
+  OS prefers-color-scheme media query (the default in v4).
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -9,6 +17,16 @@ body {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   background-color: #f8fafc;
   color: #1e293b;
+}
+
+/*
+  Dark mode body overrides. Tailwind utilities on individual components handle
+  most of the theming, but body background/color must be set via plain CSS
+  because the <body> element itself is not rendered by React.
+*/
+html.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
 #root {

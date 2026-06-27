@@ -15,9 +15,9 @@ import {
 
 function FundamentalsRow({ label, value }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-      <span className="text-xs text-gray-500 font-medium">{label}</span>
-      <span className="text-sm font-semibold text-gray-800 font-mono">{value}</span>
+    <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-slate-700 last:border-0">
+      <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">{label}</span>
+      <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 font-mono">{value}</span>
     </div>
   );
 }
@@ -28,7 +28,7 @@ export default function StockDetail() {
   const [stock, setStock] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [chartMode, setChartMode] = useState('line'); // 'line' or 'candle'
+  const [chartMode, setChartMode] = useState('line');
 
   const decodedTicker = decodeURIComponent(ticker);
 
@@ -60,7 +60,7 @@ export default function StockDetail() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-blue-600 hover:underline mb-4 inline-block"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-4 inline-block"
         >
           Back
         </button>
@@ -77,34 +77,34 @@ export default function StockDetail() {
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
         onClick={() => navigate(-1)}
-        className="text-sm text-blue-600 hover:underline mb-5 inline-block"
+        className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-5 inline-block"
       >
         Back to Dashboard
       </button>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 mb-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-xl font-bold text-gray-900">{stock.name}</h1>
-              <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{stock.name}</h1>
+              <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-semibold px-2 py-0.5 rounded">
                 {stock.ticker}
               </span>
               {stock.exchange && (
-                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
+                <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded">
                   {stock.exchange}
                 </span>
               )}
             </div>
             {stock.sector && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 {stock.sector}
                 {stock.industry ? ` - ${stock.industry}` : ''}
               </p>
             )}
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-gray-900 font-mono">
+            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100 font-mono">
               {formatPrice(stock.price)}
             </p>
             <p className={`text-sm font-semibold font-mono ${changeColor}`}>
@@ -123,7 +123,7 @@ export default function StockDetail() {
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                 chartMode === 'line'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
               }`}
             >
               Line Chart
@@ -133,7 +133,7 @@ export default function StockDetail() {
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                 chartMode === 'candle'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
               }`}
             >
               Candlestick + Volume
@@ -146,8 +146,8 @@ export default function StockDetail() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide mb-3">
             Fundamentals
           </h2>
           <FundamentalsRow label="Market Cap" value={formatMarketCap(stock.market_cap)} />

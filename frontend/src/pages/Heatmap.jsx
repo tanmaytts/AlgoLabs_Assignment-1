@@ -28,7 +28,7 @@ const METRICS = [
     key: 'pe_ratio',
     label: 'P/E Ratio',
     format: (v) => formatNum(v),
-    higherIsBetter: false, // lower P/E = better value (green)
+    higherIsBetter: false,
   },
   {
     key: 'eps',
@@ -41,20 +41,20 @@ const METRICS = [
 /**
  * Interpolates between red (#dc2626) and green (#16a34a) via a neutral gray.
  * t = 0 => red, t = 0.5 => gray/neutral, t = 1 => green.
+ * The text color is chosen for legibility against the background.
  */
 function heatColor(t) {
-  // Clamp
   const c = Math.max(0, Math.min(1, t));
 
   if (c < 0.5) {
-    // red (#dc2626) to neutral (#9ca3af)
+    /* red (#dc2626) to neutral (#9ca3af) */
     const u = c / 0.5;
     const r = Math.round(220 + (156 - 220) * u);
     const g = Math.round(38 + (163 - 38) * u);
     const b = Math.round(38 + (175 - 38) * u);
     return { bg: `rgb(${r},${g},${b})`, text: c < 0.25 ? '#fff' : '#1f2937' };
   } else {
-    // neutral (#9ca3af) to green (#16a34a)
+    /* neutral (#9ca3af) to green (#16a34a) */
     const u = (c - 0.5) / 0.5;
     const r = Math.round(156 + (22 - 156) * u);
     const g = Math.round(163 + (163 - 163) * u);
@@ -110,7 +110,6 @@ export default function Heatmap() {
     };
   }, []);
 
-  // Pre-compute column stats
   const columnStats = METRICS.reduce((acc, m) => {
     acc[m.key] = computeColumnStats(stocks, m.key);
     return acc;
@@ -118,8 +117,10 @@ export default function Heatmap() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Financial Ratio Heatmap</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">
+        Financial Ratio Heatmap
+      </h1>
+      <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
         Color scale: green = relatively better, red = relatively worse (within each column's range).
         For P/E Ratio, lower values are considered better (cheaper valuation), so lower P/E is green.
       </p>
@@ -135,57 +136,56 @@ export default function Heatmap() {
       {!loading && !error && stocks.length > 0 && (
         <>
           {/* Legend */}
-          <div className="flex items-center gap-4 mb-5 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <div className="flex items-center gap-4 mb-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-4">
+            <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
               Legend
             </span>
             <div className="flex items-center gap-2">
               <div
                 className="w-24 h-5 rounded"
                 style={{
-                  background:
-                    'linear-gradient(to right, #dc2626, #9ca3af, #16a34a)',
+                  background: 'linear-gradient(to right, #dc2626, #9ca3af, #16a34a)',
                 }}
               />
-              <span className="text-xs text-gray-500">Low / Worse</span>
-              <span className="text-xs text-gray-400 mx-1">to</span>
-              <span className="text-xs text-gray-500">High / Better</span>
+              <span className="text-xs text-gray-500 dark:text-slate-400">Low / Worse</span>
+              <span className="text-xs text-gray-400 dark:text-slate-500 mx-1">to</span>
+              <span className="text-xs text-gray-500 dark:text-slate-400">High / Better</span>
             </div>
-            <div className="ml-4 text-xs text-gray-400 border-l border-gray-200 pl-4">
+            <div className="ml-4 text-xs text-gray-400 dark:text-slate-500 border-l border-gray-200 dark:border-slate-700 pl-4">
               P/E Ratio is inverted: lower P/E = green (better value)
             </div>
           </div>
 
           {/* Heatmap table */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide sticky left-0 bg-gray-50 z-10">
+                  <tr className="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide sticky left-0 bg-gray-50 dark:bg-slate-700/50 z-10">
                       Company
                     </th>
-                    <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th className="text-left px-3 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                       Ticker
                     </th>
                     {METRICS.map((m) => (
                       <th
                         key={m.key}
-                        className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide min-w-[110px]"
+                        className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide min-w-[110px]"
                       >
                         {m.label}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-slate-700/30">
                   {stocks.map((stock) => (
-                    <tr key={stock.ticker} className="hover:brightness-95 transition-all">
-                      <td className="px-4 py-2.5 font-medium text-gray-800 max-w-[180px] truncate sticky left-0 bg-white z-10 border-r border-gray-50">
+                    <tr key={stock.ticker} className="hover:brightness-95 dark:hover:brightness-110 transition-all">
+                      <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-slate-200 max-w-[180px] truncate sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-gray-50 dark:border-slate-700">
                         {stock.name}
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded">
+                        <span className="text-xs bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold px-2 py-0.5 rounded">
                           {stock.ticker}
                         </span>
                       </td>
@@ -225,13 +225,13 @@ export default function Heatmap() {
               return (
                 <div
                   key={m.key}
-                  className="bg-white rounded-lg border border-gray-200 px-4 py-3 text-xs"
+                  className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 px-4 py-3 text-xs"
                 >
-                  <p className="font-semibold text-gray-600 mb-1">{m.label}</p>
-                  <p className="text-gray-400">
+                  <p className="font-semibold text-gray-600 dark:text-slate-300 mb-1">{m.label}</p>
+                  <p className="text-gray-400 dark:text-slate-500">
                     Range: {m.format(stats.min)} to {m.format(stats.max)}
                   </p>
-                  <p className="text-gray-400 mt-0.5">
+                  <p className="text-gray-400 dark:text-slate-500 mt-0.5">
                     {m.higherIsBetter ? 'Higher = green' : 'Lower = green (better value)'}
                   </p>
                 </div>

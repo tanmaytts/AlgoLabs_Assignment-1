@@ -94,8 +94,8 @@ export default function Compare() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Compare Stocks</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Compare Stocks</h1>
+      <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
         Select 2 to 5 stocks to compare their key metrics side by side.
       </p>
 
@@ -109,15 +109,15 @@ export default function Compare() {
 
       {!listLoading && !listError && allStocks.length > 0 && (
         <>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 mb-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-gray-700">
+              <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                 Select tickers ({selectedTickers.length}/{MAX_TICKERS})
               </span>
               {selectedTickers.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  className="text-xs text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 >
                   Clear all
                 </button>
@@ -136,8 +136,8 @@ export default function Compare() {
                       selected
                         ? 'bg-blue-600 text-white border-blue-600'
                         : disabled
-                        ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400 hover:text-blue-700'
+                        ? 'bg-gray-50 dark:bg-slate-700/30 text-gray-300 dark:text-slate-600 border-gray-100 dark:border-slate-700 cursor-not-allowed'
+                        : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-blue-400 hover:text-blue-700 dark:hover:text-blue-400'
                     }`}
                   >
                     {s.ticker}
@@ -152,13 +152,13 @@ export default function Compare() {
                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
                   canCompare && !compareLoading
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                 }`}
               >
                 {compareLoading ? 'Loading...' : 'Compare'}
               </button>
               {!canCompare && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 dark:text-slate-500">
                   Select at least {MIN_TICKERS} tickers to compare.
                 </span>
               )}
@@ -168,21 +168,21 @@ export default function Compare() {
           {compareLoading && <Loading message="Fetching stock details..." />}
 
           {!compareLoading && compareData.length > 0 && (
-            <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-36">
+                  <tr className="border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide w-36">
                       Metric
                     </th>
                     {compareData.map((s) => (
                       <th
                         key={s.ticker}
-                        className="px-4 py-3 text-center text-xs font-semibold text-blue-700 uppercase tracking-wide"
+                        className="px-4 py-3 text-center text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide"
                       >
                         {s.ticker}
                         {s.name && (
-                          <div className="text-gray-400 font-normal normal-case text-xs mt-0.5 truncate max-w-32">
+                          <div className="text-gray-400 dark:text-slate-500 font-normal normal-case text-xs mt-0.5 truncate max-w-32">
                             {s.name}
                           </div>
                         )}
@@ -194,9 +194,9 @@ export default function Compare() {
                   {METRICS.map((metric) => (
                     <tr
                       key={metric.key}
-                      className="border-b border-gray-50 last:border-0"
+                      className="border-b border-gray-50 dark:border-slate-700/50 last:border-0"
                     >
-                      <td className="px-4 py-3 text-xs text-gray-500 font-medium">
+                      <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400 font-medium">
                         {metric.label}
                       </td>
                       {compareData.map((s) => {
@@ -215,7 +215,9 @@ export default function Compare() {
                         }
                         const val = s[metric.key];
                         const formatted = metric.format(val);
-                        const colorCls = metric.colorFn ? metric.colorFn(val) : 'text-gray-800';
+                        const colorCls = metric.colorFn
+                          ? metric.colorFn(val)
+                          : 'text-gray-800 dark:text-slate-200';
                         return (
                           <td
                             key={s.ticker}

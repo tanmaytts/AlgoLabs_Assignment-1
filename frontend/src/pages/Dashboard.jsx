@@ -36,7 +36,9 @@ export default function Dashboard() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Market Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6">
+        Market Dashboard
+      </h1>
 
       {summaryLoading ? (
         <Loading message="Loading market summary..." />
