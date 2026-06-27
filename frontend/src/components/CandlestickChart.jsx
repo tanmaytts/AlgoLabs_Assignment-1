@@ -17,6 +17,9 @@ import { computeSMA } from '../utils/indicators';
 
 const RANGES = ['1M', '6M', '1Y'];
 
+/* Trading-day counts for each display range */
+const RANGE_DAYS = { '1M': 22, '6M': 126, '1Y': Infinity };
+
 /* SMA color constants */
 const SMA20_COLOR = '#f59e0b'; /* amber-400 */
 const SMA50_COLOR = '#8b5cf6'; /* violet-500 */
@@ -166,7 +169,8 @@ function CandleTooltip({ active, payload, label }) {
 
 export default function CandlestickChart({ ticker }) {
   const [range, setRange] = useState('1M');
-  const [history, setHistory] = useState([]);
+  /* fullHistory always holds 1Y of data; fetched once per ticker */
+  const [fullHistory, setFullHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -182,15 +186,16 @@ export default function CandlestickChart({ ticker }) {
     return () => observer.disconnect();
   }, []);
 
+  /* Fetch the full 1Y series once per ticker. Range changes only re-slice. */
   useEffect(() => {
     if (!ticker) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchStockHistory(ticker, range)
+    fetchStockHistory(ticker, '1Y')
       .then((data) => {
         if (!cancelled) {
-          setHistory(data);
+          setFullHistory(Array.isArray(data) ? data : []);
           setLoading(false);
         }
       })
@@ -203,12 +208,19 @@ export default function CandlestickChart({ ticker }) {
     return () => {
       cancelled = true;
     };
-  }, [ticker, range]);
+  }, [ticker]);
 
-  /* Build SMA arrays from close prices */
-  const closes = history.map((r) => r.close);
-  const sma20Values = computeSMA(closes, 20);
-  const sma50Values = computeSMA(closes, 50);
+  /* Compute SMA over the full 1Y series so values are warm for any sub-range */
+  const fullCloses = fullHistory.map((r) => r.close);
+  const fullSMA20 = computeSMA(fullCloses, 20);
+  const fullSMA50 = computeSMA(fullCloses, 50);
+
+  /* Slice to the selected display range (client-side, no re-fetch) */
+  const days = RANGE_DAYS[range] ?? 22;
+  const sliceStart = days === Infinity ? 0 : Math.max(0, fullHistory.length - days);
+  const history = fullHistory.slice(sliceStart);
+  const sma20Values = fullSMA20.slice(sliceStart);
+  const sma50Values = fullSMA50.slice(sliceStart);
 
   const chartData = history.map((row, i) => ({
     date: formatDate(row.date, range),
@@ -286,11 +298,11 @@ export default function CandlestickChart({ ticker }) {
         </div>
       </div>
 
-      {loading && <Loading message={`Loading ${range} price history...`} />}
+      {loading && <Loading message="Loading price history..." />}
       {!loading && error && (
         <ErrorView
           error={error}
-          endpoint={`/api/stocks/${ticker}/history?range=${range}`}
+          endpoint={`/api/stocks/${ticker}/history?range=1Y`}
         />
       )}
       {!loading && !error && chartData.length === 0 && (
@@ -314,6 +326,7 @@ export default function CandlestickChart({ ticker }) {
               />
               <YAxis
                 domain={[priceMin - pricePad, priceMax + pricePad]}
+                allowDataOverflow={true}
                 tick={{ fontSize: 11, fill: tickColor }}
                 tickLine={false}
                 axisLine={false}
@@ -325,13 +338,26 @@ export default function CandlestickChart({ ticker }) {
               <Tooltip content={<CandleTooltip />} />
 
               {/*
-                The Bar renders the candlestick custom shape. The SMA Line
-                series are independent overlays - they do NOT interfere with
-                the custom CandlestickShape rendering.
-
-                Note: on 1M range, SMA(50) will have no visible points because
-                there are only ~21 trading days. That is expected behavior.
+                Stacked-bar technique: the transparent spacer Bar (candleBase)
+                pushes the stack up to the low price, then the candleRange Bar
+                on top renders the actual high-low span. The YAxis clips the
+                zero baseline via allowDataOverflow so only the price band is
+                visible. The custom CandlestickShape draws wicks and bodies
+                within the y..(y+height) pixel span that now correctly maps to
+                low..high.
               */}
+              {/* Transparent spacer: lifts the stack from 0 up to the candle low */}
+              <Bar
+                dataKey="candleBase"
+                stackId="candle"
+                fill="none"
+                fillOpacity={0}
+                stroke="none"
+                legendType="none"
+                isAnimationActive={false}
+                tooltipType="none"
+              />
+
               <Bar
                 dataKey="candleRange"
                 stackId="candle"

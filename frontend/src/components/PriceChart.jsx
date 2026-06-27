@@ -67,9 +67,13 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+/* Trading-day counts for each display range */
+const RANGE_DAYS = { '1M': 22, '6M': 126, '1Y': Infinity };
+
 export default function PriceChart({ ticker }) {
   const [range, setRange] = useState('1M');
-  const [history, setHistory] = useState([]);
+  /* fullHistory always holds 1Y of data; fetched once per ticker */
+  const [fullHistory, setFullHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -85,15 +89,16 @@ export default function PriceChart({ ticker }) {
     return () => observer.disconnect();
   }, []);
 
+  /* Fetch the full 1Y series once per ticker. Range changes only re-slice. */
   useEffect(() => {
     if (!ticker) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchStockHistory(ticker, range)
+    fetchStockHistory(ticker, '1Y')
       .then((data) => {
         if (!cancelled) {
-          setHistory(data);
+          setFullHistory(Array.isArray(data) ? data : []);
           setLoading(false);
         }
       })
@@ -106,13 +111,21 @@ export default function PriceChart({ ticker }) {
     return () => {
       cancelled = true;
     };
-  }, [ticker, range]);
+  }, [ticker]);
+
+  /* Compute SMA over the full 1Y series so values are warm for any sub-range */
+  const fullCloses = fullHistory.map((r) => r.close);
+  const fullSMA20 = computeSMA(fullCloses, 20);
+  const fullSMA50 = computeSMA(fullCloses, 50);
+
+  /* Slice to the selected display range (client-side, no re-fetch) */
+  const days = RANGE_DAYS[range] ?? 22;
+  const sliceStart = days === Infinity ? 0 : Math.max(0, fullHistory.length - days);
+  const history = fullHistory.slice(sliceStart);
+  const sma20Values = fullSMA20.slice(sliceStart);
+  const sma50Values = fullSMA50.slice(sliceStart);
 
   /* Build chart data with SMA values merged in */
-  const closes = history.map((r) => r.close);
-  const sma20Values = computeSMA(closes, 20);
-  const sma50Values = computeSMA(closes, 50);
-
   const chartData = history.map((row, i) => ({
     date: formatDate(row.date, range),
     close: row.close,
@@ -180,11 +193,11 @@ export default function PriceChart({ ticker }) {
         </div>
       </div>
 
-      {loading && <Loading message={`Loading ${range} price history...`} />}
+      {loading && <Loading message="Loading price history..." />}
       {!loading && error && (
         <ErrorView
           error={error}
-          endpoint={`/api/stocks/${ticker}/history?range=${range}`}
+          endpoint={`/api/stocks/${ticker}/history?range=1Y`}
         />
       )}
       {!loading && !error && chartData.length === 0 && (
@@ -226,11 +239,7 @@ export default function PriceChart({ ticker }) {
               activeDot={{ r: 4, fill: '#2563eb' }}
             />
 
-            {/*
-              SMA(20) overlay in amber. connectNulls draws through gaps so the
-              line renders as soon as 20 data points are available.
-              On 1M range, SMA(50) may have no points - that is expected.
-            */}
+            {/* SMA(20) overlay in amber. connectNulls draws through gaps. */}
             {showSMA20 && (
               <Line
                 type="monotone"
